@@ -265,3 +265,202 @@ CTest(void) = delete
 디폴트 생성자가 없는 클래스에 경우
 
 <u>디폴트 생성자가 없다고 명시</u>해 줄 수도 있다
+
+
+
+### 메서드
+
+클래스가 제공하는 기능을 실행하는 방법으로 주로 쓰인다
+
+사용자와 클래스 제작자를 이어주는 역할을 한다
+
+때문에 멤버함수 보다는 주로 메서드 또는 인터페이스 함수라고 불린다
+
+``` cpp
+static int CTest::GetParam(void) const
+```
+
+원형은 위와 같다 static과 const는 생략 가능하며 뒤에서 설명한다
+
+
+
+**this 포인터**
+
+작성 중인 클래스의 실제 인스턴스에 대한 주소를 가리키는 포인터이다
+
+설명하기 까다롭지만 어려운 개념은 아니다
+
+말 그대로 선언한 인스턴스에 대해 개별적으로 해당 클래스에 접근하는 걸 뜻한다
+
+
+
+안써도 큰 문제는 되지 않지만 
+
+범위 지정 연산자를 통해 소속을 정확히 명시 할 수 있다
+
+되도록이면 그냥 쓰자
+
+``` cpp
+class CTest
+{
+    int m_nData;
+public:
+    CTest(int nParam) : m_nData(nParam){};
+    void PrintData()
+    {
+        cout << this->m_nData << endl;
+    }
+}
+```
+
+
+
+**상수형 메서드**
+
+```cpp
+int GetData() const {};
+```
+
+대충 이렇게 뒤에 const가 붙은 걸 상수형 메서드라고 한다
+
+일반적인 상수의 개념과 다르지 않다
+
+저렇게 뒤에 const가 붙으면 **수정은 불가하고 읽기만 가능하다** 이게 끝이다
+
+당연히 const를 붙일 수 있는 메서드라면 무조건 붙여주는게 좋다
+
+
+
+mutable, const_cast<>를 통해 상수형 메서드의 예외 처리를 할 수 있다
+
+```cpp
+class Test
+{
+    mutable int data = 0;
+public:
+    int GetData() const
+    {
+        data = 20;
+        return data;
+    }
+}
+```
+
+```cpp
+void TestFunc(const int &nParam)
+{
+    int &nNewParam = const_cast<int &>(nParam);
+    nNewParam = 20;
+}
+```
+
+
+
+
+
+**상수지시포인터, 상수포인터, 상수지시상수포인터, 포인터상수**
+
+``` cpp
+const char* test = "abc"; //상수지시포인터
+char* test const = "abc"; //상수포인터
+const char* test const = "abc"; //상수지시포인터상수
+char ary[] = "abc"; //포인터상수
+```
+
+상수형 메서드 개념을 공부하다가 헷갈려서 상수 관련 개념을 다시 공부해봤다
+
+이 위에 4개가 다 다르다고 한다.....
+
+
+
+4번째 포인터상수는 그냥 배열이라고 생각하면 된다 <u>주소는 바뀔 수 없고, 대상체는 바뀐다</u>
+
+
+
+1번째 상수지시포인터는 말 그대로 상수를 지시 할 수 있는 포인터다
+
+<u>주소, 대상체 모두 바뀔 수 있고, 상수를 지시 할 수 있다</u>
+
+최신 컴파일러에서 일반포인터로 상수를 지시하면 경고가 뜬다
+
+
+
+2번째 상수포인터는 일반 상수 개념과 다르지 않다 선언과 동시에 지시해야하며
+
+<u>주소, 대상체 모두 바뀔 수 없다</u>
+
+이 또한 상수를 가리키면 경고가 뜬다
+
+
+
+3번째 상수지시포인터상수 1번과 2번 제약의 짬뽕이다
+
+<u>주소, 대상체 모두 바뀔 수 없다. 상수를 지시 할 수 있다</u>
+
+
+
+**멤버 함수의 다중 정의**
+
+함수 다중 정의랑 방법은 똑같다 
+
+이 챕터에서 주로 다루는 내용은 다중 정의로 예외처리를 하는 부분이다
+
+정수형만 받기 위해 실수형은 0으로 받는 방법과
+
+delete 예약어로 자의적으로 에러를 발생시키는 것이다
+
+``` cpp 
+//실수형은 0으로 할당
+void SetData(double dParam){m_nData = 0;}
+
+//delete 예약어 사용
+void SetData(double dParam) = delete;
+```
+
+어설프게 살아서 작동하는 코드가 더 심각한 문제를 만든다는 점에서
+
+첫 번째 방법보다 두 번째
+
+
+
+### 정적 멤버
+
+전역 변수나 전역 함수랑 기능은 같다
+
+근데 어쨌든 전역 변수나 전역 함수를 남발하면 굉장히 프로그래밍 과정이 불리해지기 때문에
+
+클래스 안에 종속시켜 놓는 것이다
+
+
+
+클래스 안에 좋속되어 있긴 하지만 
+
+클래스만 명시한다면 인스턴스를 선언하지 않고 직접 호출 할 수 있다
+
+this 포인터를 사용할 수 없고 반드시 선언과 정의를 분리해야 한다
+
+```cpp
+class Test
+{
+    int m_nData;
+    static int m_nCount;
+public:
+    CTest(int nParam) : m_nData(nParam) {m_nCount++;}
+    int GetData() {return m_nData;};
+    void ResetCount() {m_nCount=0;};
+    
+    static int GetCount()
+    {
+        return m_nCount;
+    };
+};
+
+int Test::m_nCount = 0;
+
+int main()
+{
+    Test a(5), b(10);
+    cout<<Test::GetCount()<<endl;
+}
+```
+
